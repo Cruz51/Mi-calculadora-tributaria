@@ -1,12 +1,84 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>My Google AI Studio App</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora Tributaria Colombia 2026</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 min-h-screen flex items-center justify-center p-4">
+    <div class="bg-white shadow-2xl rounded-2xl p-8 max-w-md w-full border-t-8 border-blue-600">
+        <h1 class="text-2xl font-extrabold text-slate-800 mb-2">Calculadora Tributaria</h1>
+        <p class="text-slate-500 text-sm mb-6">Consulta tus retenciones para el año 2026</p>
+
+        <div class="space-y-5">
+            <div>
+                <label class="block text-sm font-bold text-slate-700 mb-1">Salario Mensual Bruto</label>
+                <input type="number" id="salario" placeholder="Ej: 5000000" 
+                    class="w-full p-3 border-2 border-slate-200 rounded-lg focus:border-blue-500 outline-none transition">
+            </div>
+
+            <div>
+                <label class="block text-sm font-bold text-slate-700 mb-1">Otros Descuentos (Prepagada, etc.)</label>
+                <input type="number" id="deducciones" value="0" 
+                    class="w-full p-3 border-2 border-slate-200 rounded-lg focus:border-blue-500 outline-none transition">
+            </div>
+
+            <button onclick="calcular()" 
+                class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 transform active:scale-95 transition">
+                Calcular Retención
+            </button>
+        </div>
+
+        <div id="resultado" class="mt-8 hidden animate-fade-in">
+            <div class="bg-blue-50 p-4 rounded-xl border border-blue-100">
+                <p class="text-blue-800 text-sm font-semibold uppercase tracking-wider">Retención Estimada</p>
+                <p id="valorRetencion" class="text-3xl font-black text-blue-900">$ 0</p>
+            </div>
+            <div class="mt-4 text-[10px] text-slate-400 leading-tight">
+                * Estimación basada en UVT 2026 ($52.374) y Procedimiento 1. La depuración incluye el 25% de renta exenta y seguridad social de ley.
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function calcular() {
+            const UVT_2026 = 52374;
+            const salario = parseFloat(document.getElementById('salario').value) || 0;
+            const deduccionesUser = parseFloat(document.getElementById('deducciones').value) || 0;
+
+            // 1. Ingresos No Constitutivos (Salud + Pensión = 8%)
+            const seguridadSocial = salario * 0.08;
+            const baseNeta = salario - seguridadSocial;
+
+            // 2. Depuración (25% Renta Exenta + Otras deducciones)
+            const rentaExenta = baseNeta * 0.25;
+            let baseGravable = baseNeta - rentaExenta - deduccionesUser;
+
+            // Tope del 40% (Simplificado)
+            if (baseGravable < (baseNeta * 0.6)) {
+                baseGravable = baseNeta * 0.6;
+            }
+
+            // 3. Convertir a UVT
+            const baseUvt = baseGravable / UVT_2026;
+
+            // 4. Tabla Art. 383
+            let impuestoUvt = 0;
+            if (baseUvt > 95 && baseUvt <= 150) impuestoUvt = (baseUvt - 95) * 0.19;
+            else if (baseUvt > 150 && baseUvt <= 360) impuestoUvt = (baseUvt - 150) * 0.28 + 10;
+            else if (baseUvt > 360) impuestoUvt = (baseUvt - 360) * 0.33 + 69;
+
+            const impuestoFinal = impuestoUvt * UVT_2026;
+
+            // Mostrar resultado
+            document.getElementById('valorRetencion').innerText = impuestoFinal.toLocaleString('es-CO', {
+                style: 'currency',
+                currency: 'COP',
+                maximumFractionDigits: 0
+            });
+            document.getElementById('resultado').classList.remove('hidden');
+        }
+    </script>
+</body>
 </html>
